@@ -20,5 +20,10 @@
         "vite": "^6.0",
         "vue": "^3.4.0",
         "vue-tsc": "^2.0.24"
+    },
+    "dependencies": {
+        "@heroicons/vue": "^2.2.0",
+        "@types/three": "^0.171.0",
+        "three": "^0.171.0"
     }
 }
