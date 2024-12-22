@@ -21,7 +21,6 @@ import {
 } from '@heroicons/vue/24/outline';
 import { Link, usePage } from '@inertiajs/vue3';
 import { computed, ref, onMounted, onUnmounted } from 'vue';
-import { useRouter } from 'vue-router';
 
 const showingSidebar = ref(window.innerWidth >= 1024);
 const showingUserMenu = ref(false);
