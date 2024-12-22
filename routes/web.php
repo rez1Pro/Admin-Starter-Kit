@@ -25,12 +25,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    // Roles Management
-    Route::resource('roles', RoleController::class);
-    // User Management
-    Route::resource('users', UserController::class);
+
+
+    Route::group(['prefix' => 'users', 'as' => 'users.'], function () {
+        Route::resource('/', UserController::class)->parameter('', 'user')->whereNumber('user');
+        Route::resource('roles', RoleController::class)->parameter('', 'role')->whereNumber('role');
+    });
     // Settings
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

@@ -16,8 +16,9 @@
         "laravel/tinker": "^2.9",
         "predis/predis": "^2.3",
         "rez1pro/service-create-command": "^1.0",
-        "spatie/laravel-data": "^4.11",
+        "spatie/laravel-data": "^3.2",
         "spatie/laravel-query-builder": "^6.2",
+        "spatie/laravel-typescript-transformer": "^2.5",
         "tightenco/ziggy": "^2.0"
     },
     "require-dev": {

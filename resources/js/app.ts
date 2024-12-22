@@ -4,9 +4,11 @@ import './bootstrap';
 import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createApp, DefineComponent, h } from 'vue';
+// @ts-ignore
+import LaraTable from 'vue3-lara-table';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 
-const appName = 'Your App Name';
+const appName = import.meta.env.VITE_APP_NAME || 'Laravel App';
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
@@ -19,6 +21,7 @@ createInertiaApp({
         createApp({ render: () => h(App, props) })
             .use(plugin)
             .use(ZiggyVue)
+            .use(LaraTable)
             .mount(el);
     },
     progress: {

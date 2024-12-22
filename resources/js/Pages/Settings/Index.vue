@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import { Head } from '@inertiajs/vue3';
 </script>
 
 <template>
+
     <Head title="Settings" />
 
     <AuthenticatedLayout>
@@ -17,4 +18,4 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
             <!-- Add your settings content here -->
         </div>
     </AuthenticatedLayout>
-</template> 
+</template>

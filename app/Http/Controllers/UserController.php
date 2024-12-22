@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Data\UserData;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -10,16 +11,14 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::latest()->paginate(10);
-        
         return Inertia::render('Users/Index', [
-            'users' => $users
+            'users' => UserData::collection(User::with('role')->paginate(10))
         ]);
     }
 
     public function create()
     {
-        return Inertia::render('Users/Create');
+        // return Inertia::render('Users/Create');
     }
 
     public function store(Request $request)
@@ -63,4 +62,4 @@ class UserController extends Controller
         return redirect()->route('users.index')
             ->with('success', 'User deleted successfully.');
     }
-} 
+}

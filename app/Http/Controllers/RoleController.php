@@ -2,24 +2,26 @@
 
 namespace App\Http\Controllers;
 
+use App\Data\RoleData;
 use App\Enums\Enums\BasePermissionEnums;
 use App\Models\Role;
 use App\Models\Permission;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class RoleController extends Controller
 {
     public function index()
     {
-        $roles = Role::with('permissions')
-            ->withCount('permissions')
-            ->latest()
-            ->paginate(10);
-
         return Inertia::render('Roles/Index', [
-            'roles' => $roles
+            'roles' => RoleData::collection(QueryBuilder::for(Role::class)
+                ->withCount(['permissions', 'users'])
+                ->allowedSorts(['name', 'created_at'])
+                ->defaultSort('-id')
+                ->allowedFilters(['name'])
+                ->paginate(request()->get('per_page', 10)))
         ]);
     }
 
