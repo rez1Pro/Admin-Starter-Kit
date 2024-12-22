@@ -8,6 +8,31 @@ import {
     CurrencyDollarIcon,
     ShoppingCartIcon,
 } from '@heroicons/vue/24/outline';
+import { Line, Bar, Doughnut } from 'vue-chartjs';
+import {
+    Chart as ChartJS,
+    Title,
+    Tooltip,
+    Legend,
+    LineElement,
+    LinearScale,
+    PointElement,
+    CategoryScale,
+    BarElement,
+    ArcElement
+} from 'chart.js';
+
+ChartJS.register(
+    Title,
+    Tooltip,
+    Legend,
+    LineElement,
+    LinearScale,
+    PointElement,
+    CategoryScale,
+    BarElement,
+    ArcElement
+);
 
 const stats = [
     {
@@ -59,6 +84,61 @@ const topProducts = [
     },
     // Add more products...
 ];
+
+// Chart Data
+const salesData = {
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+    datasets: [
+        {
+            label: 'Sales',
+            data: [30, 45, 35, 50, 40, 60],
+            fill: true,
+            borderColor: '#4F46E5',
+            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+            tension: 0.4
+        }
+    ]
+};
+
+const revenueData = {
+    labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+    datasets: [
+        {
+            label: 'Revenue',
+            data: [12000, 19000, 15000, 25000],
+            backgroundColor: [
+                'rgba(79, 70, 229, 0.8)',
+                'rgba(59, 130, 246, 0.8)',
+                'rgba(16, 185, 129, 0.8)',
+                'rgba(245, 158, 11, 0.8)'
+            ],
+            borderRadius: 6
+        }
+    ]
+};
+
+const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: {
+            position: 'bottom' as const
+        }
+    },
+    scales: {
+        y: {
+            beginAtZero: true,
+            grid: {
+                display: false
+            }
+        },
+        x: {
+            grid: {
+                display: false
+            }
+        }
+    }
+};
 </script>
 
 <template>
@@ -122,10 +202,7 @@ const topProducts = [
                 <div class="bg-white rounded-xl shadow-sm p-6">
                     <h2 class="text-lg font-semibold text-gray-900">Sales Overview</h2>
                     <div class="mt-4 h-80">
-                        <!-- Add your chart component here -->
-                        <div class="w-full h-full bg-gray-50 rounded-lg flex items-center justify-center">
-                            <p class="text-gray-400">Chart Component Here</p>
-                        </div>
+                        <Line :data="salesData" :options="chartOptions" />
                     </div>
                 </div>
 
@@ -133,10 +210,7 @@ const topProducts = [
                 <div class="bg-white rounded-xl shadow-sm p-6">
                     <h2 class="text-lg font-semibold text-gray-900">Revenue Analytics</h2>
                     <div class="mt-4 h-80">
-                        <!-- Add your chart component here -->
-                        <div class="w-full h-full bg-gray-50 rounded-lg flex items-center justify-center">
-                            <p class="text-gray-400">Chart Component Here</p>
-                        </div>
+                        <Bar :data="revenueData" :options="chartOptions" />
                     </div>
                 </div>
             </div>

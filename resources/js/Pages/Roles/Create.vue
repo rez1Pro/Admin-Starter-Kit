@@ -9,43 +9,58 @@ import {
     UserGroupIcon,
 } from '@heroicons/vue/24/outline';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
+
+const props = defineProps({
+    permissionGroups: Array,
+});
 
 const form = useForm({
     name: '',
     description: '',
-    permissions: [] as string[],
+    permissions: [] as number[],
 });
 
-// Sample permissions - replace with your actual permissions
-const permissionGroups = [
-    {
-        name: 'User Management',
-        permissions: [
-            { id: 'create-user', name: 'Create User' },
-            { id: 'edit-user', name: 'Edit User' },
-            { id: 'delete-user', name: 'Delete User' },
-            { id: 'view-user', name: 'View User' },
-        ]
-    },
-    {
-        name: 'Content Management',
-        permissions: [
-            { id: 'create-post', name: 'Create Post' },
-            { id: 'edit-post', name: 'Edit Post' },
-            { id: 'delete-post', name: 'Delete Post' },
-            { id: 'publish-post', name: 'Publish Post' },
-        ]
-    },
-    {
-        name: 'Settings',
-        permissions: [
-            { id: 'manage-settings', name: 'Manage Settings' },
-            { id: 'view-logs', name: 'View Logs' },
-            { id: 'manage-backups', name: 'Manage Backups' },
-        ]
-    }
-];
+// Frontend validation rules
+const validationRules = {
+    name: [
+        (v: string) => !!v || 'Name is required',
+        (v: string) => v.length >= 3 || 'Name must be at least 3 characters',
+        (v: string) => v.length <= 50 || 'Name must be less than 50 characters'
+    ],
+    description: [
+        (v: string) => !!v || 'Description is required',
+        (v: string) => v.length >= 10 || 'Description must be at least 10 characters',
+        (v: string) => v.length <= 200 || 'Description must be less than 200 characters'
+    ],
+    permissions: [
+        (v: number[]) => v.length > 0 || 'At least one permission must be selected'
+    ]
+};
+
+// Validation errors
+const validationErrors = ref({
+    name: '',
+    description: '',
+    permissions: ''
+});
+
+// Validate single field
+const validateField = (field: string, value: any) => {
+    const rules = validationRules[field as keyof typeof validationRules];
+    const error = rules.find(rule => typeof rule(value) === 'string');
+    validationErrors.value[field as keyof typeof validationErrors.value] = error ? error(value) : '';
+    return !error;
+};
+
+// Validate all fields
+const validateForm = () => {
+    const fields = ['name', 'description', 'permissions'];
+    const validations = fields.map(field =>
+        validateField(field, form[field as keyof typeof form])
+    );
+    return validations.every(v => v);
+};
 
 const selectAllInGroup = (groupPermissions: any[]) => {
     groupPermissions.forEach(permission => {
@@ -53,12 +68,14 @@ const selectAllInGroup = (groupPermissions: any[]) => {
             form.permissions.push(permission.id);
         }
     });
+    validateField('permissions', form.permissions);
 };
 
 const deselectAllInGroup = (groupPermissions: any[]) => {
     form.permissions = form.permissions.filter(p =>
         !groupPermissions.some(gp => gp.id === p)
     );
+    validateField('permissions', form.permissions);
 };
 
 const isGroupFullySelected = (groupPermissions: any[]) => {
@@ -73,10 +90,27 @@ const activeSection = ref('info'); // 'info' or 'permissions'
 // Add this for better UX
 const isSubmitting = ref(false);
 
+// Add form validation helpers
+const hasErrors = computed(() =>
+    Object.values(validationErrors.value).some(error => !!error) ||
+    Object.keys(form.errors).length > 0
+);
+
+const getErrorMessage = (field: string) => {
+    return validationErrors.value[field as keyof typeof validationErrors.value] || form.errors[field];
+};
+
 const submit = () => {
+    if (!validateForm()) {
+        return;
+    }
+
     isSubmitting.value = true;
     form.post(route('roles.store'), {
-        onFinish: () => {
+        onSuccess: () => {
+            isSubmitting.value = false;
+        },
+        onError: () => {
             isSubmitting.value = false;
         },
     });
@@ -134,12 +168,16 @@ const submit = () => {
                                                 v-model="form.name"
                                                 type="text"
                                                 class="block w-full rounded-lg border-gray-200 pl-4 pr-10 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900 focus:border-emerald-500 focus:ring-emerald-500 dark:text-gray-300"
+                                                :class="{ 'border-red-500': getErrorMessage('name') }"
                                                 placeholder="e.g., Admin, Editor"
+                                                @input="validateField('name', form.name)"
+                                                @blur="validateField('name', form.name)"
                                             />
                                             <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-                                                <ShieldCheckIcon class="h-5 w-5 text-gray-400" />
+                                                <ShieldCheckIcon class="h-5 w-5" :class="getErrorMessage('name') ? 'text-red-500' : 'text-gray-400'" />
                                             </div>
                                         </div>
+                                        <p v-if="getErrorMessage('name')" class="mt-1 text-sm text-red-600">{{ getErrorMessage('name') }}</p>
                                     </div>
 
                                     <div>
@@ -150,8 +188,12 @@ const submit = () => {
                                             v-model="form.description"
                                             rows="4"
                                             class="block w-full rounded-lg border-gray-200 text-sm dark:border-gray-700 dark:bg-gray-900 focus:border-emerald-500 focus:ring-emerald-500 dark:text-gray-300"
+                                            :class="{ 'border-red-500': getErrorMessage('description') }"
                                             placeholder="Describe the role's responsibilities and access levels..."
+                                            @input="validateField('description', form.description)"
+                                            @blur="validateField('description', form.description)"
                                         ></textarea>
+                                        <p v-if="getErrorMessage('description')" class="mt-1 text-sm text-red-600">{{ getErrorMessage('description') }}</p>
                                     </div>
                                 </div>
 
@@ -322,6 +364,7 @@ const submit = () => {
                                                     :value="permission.id"
                                                     type="checkbox"
                                                     class="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 dark:border-gray-700 dark:bg-gray-900"
+                                                    @change="validateField('permissions', form.permissions)"
                                                 >
                                                 <label
                                                     :for="permission.id"
@@ -337,6 +380,7 @@ const submit = () => {
                                     </div>
                                 </div>
                             </div>
+                            <p v-if="getErrorMessage('permissions')" class="mt-4 text-sm text-red-600">{{ getErrorMessage('permissions') }}</p>
                         </div>
                     </div>
                 </div>
@@ -363,7 +407,7 @@ const submit = () => {
                         <button
                             @click="submit"
                             class="relative inline-flex items-center justify-center gap-2 px-6 py-2.5 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-all disabled:opacity-50"
-                            :disabled="isSubmitting"
+                            :disabled="isSubmitting || hasErrors"
                         >
                             <div v-if="isSubmitting" class="absolute inset-0 flex items-center justify-center bg-emerald-600 rounded-lg">
                                 <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

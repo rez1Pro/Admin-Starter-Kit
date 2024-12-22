@@ -293,9 +293,6 @@ onUnmounted(() => {
                                         </div>
                                         <div class="flex flex-col">
                                             <span>{{ item.name }}</span>
-                                            <span class="text-xs font-normal opacity-60">
-                                                {{ item.submenu.length }} items
-                                            </span>
                                         </div>
                                     </div>
 

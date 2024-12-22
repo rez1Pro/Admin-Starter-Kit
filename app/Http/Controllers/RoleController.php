@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Enums\BasePermissionEnums;
 use App\Models\Role;
 use App\Models\Permission;
 use Illuminate\Http\Request;
@@ -25,9 +26,9 @@ class RoleController extends Controller
     public function create()
     {
         $permissions = Permission::all()->groupBy('group');
-        
+
         return Inertia::render('Roles/Create', [
-            'permissions' => $permissions
+            'permissionGroups' => BasePermissionEnums::getGroupWithPermissions()
         ]);
     }
 
@@ -89,4 +90,4 @@ class RoleController extends Controller
         return redirect()->route('roles.index')
             ->with('success', 'Role deleted successfully.');
     }
-} 
+}
