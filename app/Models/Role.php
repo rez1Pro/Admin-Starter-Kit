@@ -8,16 +8,7 @@ use Illuminate\Support\Str;
 
 class Role extends Model
 {
-    protected $fillable = ['name', 'slug', 'description', 'is_active'];
-
-    protected static function boot()
-    {
-        parent::boot();
-        
-        static::creating(function ($role) {
-            $role->slug = Str::slug($role->name);
-        });
-    }
+    protected $fillable = ['name', 'description', 'is_active'];
 
     public function permissions(): BelongsToMany
     {
@@ -28,4 +19,4 @@ class Role extends Model
     {
         return $this->permissions->contains('slug', $permission);
     }
-} 
+}
