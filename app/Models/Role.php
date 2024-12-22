@@ -17,6 +17,6 @@ class Role extends Model
 
     public function hasPermission(string $permission): bool
     {
-        return $this->permissions->contains('slug', $permission);
+        return $this->permissions->contains('name', $permission);
     }
 }
