@@ -27,8 +27,6 @@ class RoleController extends Controller
 
     public function create()
     {
-        $permissions = Permission::all()->groupBy('group');
-
         return Inertia::render('Roles/Create', [
             'permissionGroups' => BasePermissionEnums::getGroupWithPermissions()
         ]);

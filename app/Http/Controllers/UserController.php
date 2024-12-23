@@ -3,12 +3,23 @@
 namespace App\Http\Controllers;
 
 use App\Data\UserData;
+use App\Enums\Permissions\UserPermissionEnums;
+use App\Http\Middleware\CheckPermission;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Inertia\Inertia;
 
-class UserController extends Controller
+class UserController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            checkPermission(UserPermissionEnums::VIEW_USER, only: ['index']),
+        ];
+    }
+
     public function index()
     {
         return Inertia::render('Users/Index', [

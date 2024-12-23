@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Enums\Enums\Permissions;
+namespace App\Enums\Permissions;
 
 use App\Traits\UseBaseEnum;
 
-enum RolePermissionEnums : string
+enum RolePermissionEnums: string
 {
     use UseBaseEnum;
 

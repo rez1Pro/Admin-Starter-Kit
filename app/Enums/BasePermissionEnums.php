@@ -1,11 +1,13 @@
 <?php
 
-namespace App\Enums\Enums;
+namespace App\Enums;
 
-use App\Enums\Enums\Permissions\RolePermissionEnums;
-use App\Enums\Enums\Permissions\UserPermissionEnums;
+use App\Enums\Permissions\RolePermissionEnums;
+use App\Enums\Permissions\UserPermissionEnums;
 use App\Traits\UseBaseEnum;
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+#[TypeScript]
 enum BasePermissionEnums
 {
     use UseBaseEnum;

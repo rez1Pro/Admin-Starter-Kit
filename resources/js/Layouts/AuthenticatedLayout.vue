@@ -3,6 +3,7 @@ import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import FlashMessage from '@/Components/FlashMessage.vue';
 import ThemeSwitcher from '@/Components/ThemeSwitcher.vue';
 import { User } from '@/types';
+import { Navigation } from '@/types/global';
 import {
     ArrowRightOnRectangleIcon,
     Bars3Icon,
@@ -17,7 +18,7 @@ import {
     XMarkIcon
 } from '@heroicons/vue/24/outline';
 import { Link, usePage } from '@inertiajs/vue3';
-import { onMounted, onUnmounted, ref } from 'vue';
+import { onMounted, onUnmounted, reactive, ref } from 'vue';
 
 const showingSidebar = ref(window.innerWidth >= 1024);
 const showingUserMenu = ref(false);
@@ -27,29 +28,33 @@ const user = page.props.auth.user as User;
 // Track expanded menu sections
 const expandedMenus = ref<string[]>([]);
 
-const navigation = [
+const navigation = reactive<Navigation[]>([
     {
         name: 'Dashboard',
         href: route('dashboard'),
         icon: HomeIcon,
-        current: route().current('dashboard')
+        current: route().current('dashboard'),
+        permissions: []
     },
     {
         name: 'User Management',
         icon: UsersIcon,
         current: route().current('users.*'),
+        permissions: [],
         submenu: [
             {
                 name: 'Users',
                 href: route('users.index'),
                 icon: UserGroupIcon,
-                current: route().current('users.index')
+                current: route().current('users.index'),
+                permission: ""
             },
             {
                 name: 'Roles',
                 href: route('users.roles.index'),
                 icon: ShieldCheckIcon,
-                current: route().current('users.roles.index')
+                current: route().current('users.roles.index'),
+                permission: 'role:'
             }
         ]
     },
@@ -57,9 +62,10 @@ const navigation = [
         name: 'Settings',
         href: route('settings.index'),
         icon: Cog6ToothIcon,
-        current: route().current('settings.index')
+        current: route().current('settings.index'),
+        permissions: []
     }
-];
+]);
 
 const toggleMenu = (menuName: string) => {
     const index = expandedMenus.value.indexOf(menuName);
