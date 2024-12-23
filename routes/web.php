@@ -26,13 +26,13 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-
     Route::group(['prefix' => 'users', 'as' => 'users.'], function () {
         Route::resource('/', UserController::class)->parameter('', 'user')->whereNumber('user');
         Route::resource('roles', RoleController::class)->parameter('', 'role')->whereNumber('role');
     });
     // Settings
-    Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
+    Route::get('/settings', [SettingController::class, 'index'])->name('settings.index')->middleware('check:setting:view');
+    Route::patch('/settings', [SettingController::class, 'update'])->name('settings.update')->middleware('check:setting:update');
 });
 
 require __DIR__ . '/auth.php';

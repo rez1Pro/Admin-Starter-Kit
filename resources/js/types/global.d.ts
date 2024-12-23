@@ -25,7 +25,7 @@ declare module '@inertiajs/core' {
 
 interface Navigation {
     name: string;
-    href?: string;
+    href: string;
     icon: Component;
     current: boolean;
     permissions: (keyof typeof App.Enums.Permissions[keyof typeof App.Enums.Permissions])[];
@@ -38,5 +38,5 @@ interface SubNavigation {
     href: string;
     icon: Component;
     current: boolean;
-    permission: keyof typeof App.Enums.Permissions[keyof typeof App.Enums.Permissions];
+    permission: string;
 }

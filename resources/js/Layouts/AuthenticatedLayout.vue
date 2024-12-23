@@ -2,8 +2,9 @@
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import FlashMessage from '@/Components/FlashMessage.vue';
 import ThemeSwitcher from '@/Components/ThemeSwitcher.vue';
-import { User } from '@/types';
 import { Navigation } from '@/types/global';
+// @ts-ignore
+import { hasPermission } from '@/utils/permissions.ts';
 import {
     ArrowRightOnRectangleIcon,
     Bars3Icon,
@@ -17,44 +18,39 @@ import {
     UsersIcon,
     XMarkIcon
 } from '@heroicons/vue/24/outline';
-import { Link, usePage } from '@inertiajs/vue3';
-import { onMounted, onUnmounted, reactive, ref } from 'vue';
+import { Link, router, usePage } from '@inertiajs/vue3';
+import { computed, onMounted, onUnmounted, reactive, ref } from 'vue';
+import { route } from 'ziggy-js';
 
-const showingSidebar = ref(window.innerWidth >= 1024);
-const showingUserMenu = ref(false);
-const page = usePage();
-const user = page.props.auth.user as User;
-
-// Track expanded menu sections
-const expandedMenus = ref<string[]>([]);
-
+// sidebar navigation
 const navigation = reactive<Navigation[]>([
     {
         name: 'Dashboard',
         href: route('dashboard'),
         icon: HomeIcon,
         current: route().current('dashboard'),
-        permissions: []
+        permissions: ['any']
     },
     {
         name: 'User Management',
         icon: UsersIcon,
         current: route().current('users.*'),
-        permissions: [],
+        permissions: ['user:view', 'role:view'],
+        href: "#",
         submenu: [
             {
                 name: 'Users',
                 href: route('users.index'),
                 icon: UserGroupIcon,
                 current: route().current('users.index'),
-                permission: ""
+                permission: "user:view"
             },
             {
                 name: 'Roles',
                 href: route('users.roles.index'),
                 icon: ShieldCheckIcon,
                 current: route().current('users.roles.index'),
-                permission: 'role:'
+                permission: 'role:view'
             }
         ]
     },
@@ -63,9 +59,21 @@ const navigation = reactive<Navigation[]>([
         href: route('settings.index'),
         icon: Cog6ToothIcon,
         current: route().current('settings.index'),
-        permissions: []
+        permissions: ['setting:view']
     }
 ]);
+
+
+
+const showingSidebar = ref(window.innerWidth >= 1024);
+const showingUserMenu = ref(false);
+
+const page = usePage();
+const user = page.props.auth.user;
+
+// Track expanded menu sections
+const expandedMenus = ref<string[]>([]);
+
 
 const toggleMenu = (menuName: string) => {
     const index = expandedMenus.value.indexOf(menuName);
@@ -146,17 +154,32 @@ const handleProfileClick = () => {
 };
 
 const handleLogout = () => {
-    // Additional logout logic if needed
+    router.post(route('logout'));
 };
+
+
+
+// Add this computed property
+const expandedByDefault = computed(() => {
+    return navigation.map(item => {
+        if (item.submenu && item.submenu.some(subitem => subitem.current)) {
+            return item.name;
+        }
+        return null;
+    }).filter(Boolean);
+});
+
 
 // Add event listeners
 onMounted(() => {
     document.addEventListener('click', closeDropdowns);
+    expandedMenus.value = expandedByDefault.value as string[];
 });
 
 onUnmounted(() => {
     document.removeEventListener('click', closeDropdowns);
 });
+
 </script>
 
 <template>
@@ -226,102 +249,113 @@ onUnmounted(() => {
                 </div>
 
                 <!-- Navigation with Enhanced Active States -->
-                <nav class="flex-1 px-3 py-4 overflow-y-auto">
+                <nav class="flex-1 px-2 py-2 overflow-y-auto">
                     <!-- Navigation Menu -->
-                    <div class="space-y-1">
+                    <div class="space-y-0.5">
                         <template v-for="item in navigation" :key="item.name">
-                            <!-- Menu Item with Submenu -->
-                            <div v-if="item.submenu" class="relative">
-                                <!-- Menu Group Header -->
-                                <button @click="toggleMenu(item.name)" @mouseenter="setHoveredMenu(item.name)"
-                                    @mouseleave="setHoveredMenu(null)"
-                                    class="group relative flex w-full items-center justify-between rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200"
-                                    :class="[
-                                        isActiveMenu(item)
-                                            ? 'bg-emerald-500 text-white dark:bg-emerald-500'
-                                            : 'text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/30',
-                                        isMenuExpanded(item.name) && !isActiveMenu(item)
-                                            ? 'bg-gray-50 dark:bg-gray-700/50'
-                                            : ''
-                                    ]">
-                                    <!-- Hover Effect Background -->
-                                    <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 opacity-0 transition-opacity duration-300"
-                                        :class="{ 'opacity-100': hoveredMenu === item.name && !isActiveMenu(item) }">
-                                    </div>
+                            <!-- Only show menu items if user has any of the required permissions -->
+                            <template v-if="item.permissions.some((permission: any) => hasPermission(permission))">
+                                <!-- Menu Item with Submenu -->
+                                <div v-if="item.submenu" class="relative">
+                                    <!-- Only show submenu items if user has the specific permission -->
+                                    <template
+                                        v-if="item.submenu.some(subitem => !subitem.permission || hasPermission(subitem.permission))">
+                                        <!-- Menu Group Header -->
+                                        <button @click="toggleMenu(item.name)" @mouseenter="setHoveredMenu(item.name)"
+                                            @mouseleave="setHoveredMenu(null)"
+                                            class="group relative flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200"
+                                            :class="[
+                                                isActiveMenu(item)
+                                                    ? 'bg-emerald-500 text-white dark:bg-emerald-500'
+                                                    : 'text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/30',
+                                                isMenuExpanded(item.name) && !isActiveMenu(item)
+                                                    ? 'bg-gray-50 dark:bg-gray-700/50'
+                                                    : ''
+                                            ]">
+                                            <!-- Hover Effect Background -->
+                                            <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 opacity-0 transition-opacity duration-300"
+                                                :class="{ 'opacity-100': hoveredMenu === item.name && !isActiveMenu(item) }">
+                                            </div>
 
-                                    <!-- Content -->
-                                    <div class="relative flex items-center gap-3">
-                                        <div class="flex h-10 w-10 items-center justify-center rounded-lg" :class="[
-                                            isActiveMenu(item)
-                                                ? 'bg-emerald-600 text-white'
-                                                : 'bg-gray-50 text-gray-600 dark:bg-gray-700 dark:text-gray-400 group-hover:bg-emerald-500/10 group-hover:text-emerald-600 dark:group-hover:text-emerald-400'
-                                        ]">
-                                            <component :is="item.icon" class="h-5 w-5 transition-colors duration-200" />
+                                            <!-- Content -->
+                                            <div class="relative flex items-center gap-3">
+                                                <div class="flex h-10 w-10 items-center justify-center rounded-lg"
+                                                    :class="[
+                                                        isActiveMenu(item)
+                                                            ? 'bg-emerald-600 text-white'
+                                                            : 'bg-gray-50 text-gray-600 dark:bg-gray-700 dark:text-gray-400 group-hover:bg-emerald-500/10 group-hover:text-emerald-600 dark:group-hover:text-emerald-400'
+                                                    ]">
+                                                    <component :is="item.icon"
+                                                        class="h-5 w-5 transition-colors duration-200" />
+                                                </div>
+                                                <div class="flex flex-col">
+                                                    <span>{{ item.name }}</span>
+                                                </div>
+                                            </div>
+
+                                            <!-- Dropdown Arrow -->
+                                            <ChevronDownIcon class="h-5 w-5 transition-transform duration-300" :class="[
+                                                isMenuExpanded(item.name) ? 'rotate-180' : '',
+                                                isActiveMenu(item) ? 'text-white' : 'text-gray-400 group-hover:text-emerald-600 dark:text-gray-500'
+                                            ]" />
+                                        </button>
+
+                                        <!-- Submenu -->
+                                        <div v-show="isMenuExpanded(item.name)" class="mt-0.5 space-y-0.5">
+                                            <Link v-for="subitem in item.submenu" :key="subitem.name"
+                                                v-show="!subitem.permission || hasPermission(subitem.permission as string)"
+                                                :href="subitem.href" @mouseenter="setHoveredMenu(subitem.name)"
+                                                @mouseleave="setHoveredMenu(null)"
+                                                class="group relative flex items-center gap-2 rounded-lg py-2 pl-12 pr-3 text-sm font-medium transition-all duration-200"
+                                                :class="[
+                                                    subitem.current
+                                                        ? 'bg-emerald-500 text-white'
+                                                        : 'text-gray-600 hover:bg-emerald-50 dark:text-gray-400 dark:hover:bg-emerald-900/30'
+                                                ]">
+                                            <!-- Hover Effect Background -->
+                                            <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 opacity-0 transition-opacity duration-300"
+                                                :class="{ 'opacity-100': hoveredMenu === subitem.name && !subitem.current }">
+                                            </div>
+
+                                            <!-- Content -->
+                                            <div class="relative flex items-center gap-2">
+                                                <component :is="subitem.icon" :class="[
+                                                    'h-4 w-4 transition-colors duration-200',
+                                                    subitem.current
+                                                        ? 'text-white'
+                                                        : 'text-gray-400 group-hover:text-emerald-600 dark:text-gray-500'
+                                                ]" />
+                                                {{ subitem.name }}
+                                            </div>
+                                            </Link>
                                         </div>
-                                        <div class="flex flex-col">
-                                            <span>{{ item.name }}</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Dropdown Arrow -->
-                                    <ChevronDownIcon class="h-5 w-5 transition-transform duration-300" :class="[
-                                        isMenuExpanded(item.name) ? 'rotate-180' : '',
-                                        isActiveMenu(item) ? 'text-white' : 'text-gray-400 group-hover:text-emerald-600 dark:text-gray-500'
-                                    ]" />
-                                </button>
-
-                                <!-- Submenu -->
-                                <div v-show="isMenuExpanded(item.name)" class="mt-1 space-y-1">
-                                    <Link v-for="subitem in item.submenu" :key="subitem.name" :href="subitem.href"
-                                        @mouseenter="setHoveredMenu(subitem.name)" @mouseleave="setHoveredMenu(null)"
-                                        class="group relative flex items-center gap-2 rounded-xl py-3 pl-14 pr-4 text-sm font-medium transition-all duration-200"
-                                        :class="[
-                                            subitem.current
-                                                ? 'bg-emerald-500 text-white'
-                                                : 'text-gray-600 hover:bg-emerald-50 dark:text-gray-400 dark:hover:bg-emerald-900/30'
-                                        ]">
-                                    <!-- Hover Effect Background -->
-                                    <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 opacity-0 transition-opacity duration-300"
-                                        :class="{ 'opacity-100': hoveredMenu === subitem.name && !subitem.current }">
-                                    </div>
-
-                                    <!-- Content -->
-                                    <div class="relative flex items-center gap-2">
-                                        <component :is="subitem.icon" :class="[
-                                            'h-4 w-4 transition-colors duration-200',
-                                            subitem.current
-                                                ? 'text-white'
-                                                : 'text-gray-400 group-hover:text-emerald-600 dark:text-gray-500'
-                                        ]" />
-                                        {{ subitem.name }}
-                                    </div>
-                                    </Link>
+                                    </template>
                                 </div>
-                            </div>
 
-                            <!-- Regular Menu Item -->
-                            <Link v-else :href="item.href" @mouseenter="setHoveredMenu(item.name)"
-                                @mouseleave="setHoveredMenu(null)"
-                                class="group relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200"
-                                :class="[
+                                <!-- Regular Menu Item -->
+                                <Link v-else :href="item.href" @mouseenter="setHoveredMenu(item.name)"
+                                    @mouseleave="setHoveredMenu(null)"
+                                    class="group relative flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200"
+                                    :class="[
+                                        item.current
+                                            ? 'bg-emerald-500 text-white'
+                                            : 'text-gray-700 hover:bg-emerald-50 dark:text-gray-300 dark:hover:bg-emerald-900/30'
+                                    ]">
+                                <!-- Hover Effect Background -->
+                                <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 opacity-0 transition-opacity duration-300"
+                                    :class="{ 'opacity-100': hoveredMenu === item.name && !item.current }"></div>
+
+                                <!-- Content -->
+                                <div class="flex h-10 w-10 items-center justify-center rounded-lg" :class="[
                                     item.current
-                                        ? 'bg-emerald-500 text-white'
-                                        : 'text-gray-700 hover:bg-emerald-50 dark:text-gray-300 dark:hover:bg-emerald-900/30'
+                                        ? 'bg-emerald-600 text-white'
+                                        : 'bg-gray-50 text-gray-600 dark:bg-gray-700 dark:text-gray-400 group-hover:bg-emerald-500/10 group-hover:text-emerald-600 dark:group-hover:text-emerald-400'
                                 ]">
-                            <!-- Hover Effect Background -->
-                            <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 opacity-0 transition-opacity duration-300"
-                                :class="{ 'opacity-100': hoveredMenu === item.name && !item.current }"></div>
-
-                            <!-- Content -->
-                            <div class="flex h-10 w-10 items-center justify-center rounded-lg" :class="[
-                                item.current
-                                    ? 'bg-emerald-600 text-white'
-                                    : 'bg-gray-50 text-gray-600 dark:bg-gray-700 dark:text-gray-400 group-hover:bg-emerald-500/10 group-hover:text-emerald-600 dark:group-hover:text-emerald-400'
-                            ]">
-                                <component :is="item.icon" class="h-5 w-5 transition-colors duration-200" />
-                            </div>
-                            <span class="relative">{{ item.name }}</span>
-                            </Link>
+                                    <component :is="item.icon" class="h-5 w-5 transition-colors duration-200" />
+                                </div>
+                                <span class="relative">{{ item.name }}</span>
+                                </Link>
+                            </template>
                         </template>
                     </div>
                 </nav>
@@ -387,10 +421,13 @@ onUnmounted(() => {
                                 class="text-gray-400 dark:text-gray-600">/</span>
                             <span v-if="route().current() !== 'dashboard'"
                                 class="text-sm font-medium text-gray-600 dark:text-gray-400">
-                                {{ route().current()
-                                    ? (route().current().split('.')[0].charAt(0).toUpperCase() +
-                                        route().current().split('.')[0].slice(1))
-                                    : '' }}
+                                {{
+                                    route().current()
+                                        // @ts-ignore
+                                        ? route().current().split('.')[0].charAt(0).toUpperCase() +
+                                        // @ts-ignore
+                                        route().current().split('.')[0].slice(1)
+                                        : '' }}
                             </span>
                         </nav>
                     </div>

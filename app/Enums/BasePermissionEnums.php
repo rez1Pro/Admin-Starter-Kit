@@ -3,11 +3,11 @@
 namespace App\Enums;
 
 use App\Enums\Permissions\RolePermissionEnums;
+use App\Enums\Permissions\SettingPermissionEnums;
 use App\Enums\Permissions\UserPermissionEnums;
 use App\Traits\UseBaseEnum;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
-#[TypeScript]
 enum BasePermissionEnums
 {
     use UseBaseEnum;
@@ -23,6 +23,10 @@ enum BasePermissionEnums
             [
                 "name" => "Role",
                 "permissions" => RolePermissionEnums::getValuesWithNames()
+            ],
+            [
+                "name" => "Setting",
+                "permissions" => SettingPermissionEnums::getValuesWithNames()
             ]
         ];
     }
@@ -32,7 +36,8 @@ enum BasePermissionEnums
     {
         return [
             ...UserPermissionEnums::getValues(),
-            ...RolePermissionEnums::getValues()
+            ...RolePermissionEnums::getValues(),
+            ...SettingPermissionEnums::getValues()
         ];
     }
 }

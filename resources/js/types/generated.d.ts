@@ -16,12 +16,10 @@ role: App.Data.RoleData;
 };
 }
 declare namespace App.Enums {
-export type BasePermissionEnums = {
-name: string;
-};
 export type RoleEnums = 'Admin' | 'User';
 }
 declare namespace App.Enums.Permissions {
 export type RolePermissionEnums = 'role:view' | 'role:create' | 'role:update' | 'role:delete';
+export type SettingPermissionEnums = 'setting:view' | 'setting:update';
 export type UserPermissionEnums = 'user:view' | 'user:create' | 'user:update';
 }

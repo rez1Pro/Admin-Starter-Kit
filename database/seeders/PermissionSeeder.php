@@ -30,5 +30,8 @@ class PermissionSeeder extends Seeder
                 'name' => $permission
             ]);
         }
+
+        $admin = Role::where('name', RoleEnums::ADMIN)->first();
+        $admin->permissions()->sync(Permission::all());
     }
 }

@@ -6,36 +6,6 @@ declare module 'ziggy-js' {
     "profile.edit": [],
     "profile.update": [],
     "profile.destroy": [],
-    "roles.index": [],
-    "roles.create": [],
-    "roles.store": [],
-    "roles.show": [
-        {
-            "name": "role",
-            "required": true
-        }
-    ],
-    "roles.edit": [
-        {
-            "name": "role",
-            "required": true,
-            "binding": "id"
-        }
-    ],
-    "roles.update": [
-        {
-            "name": "role",
-            "required": true,
-            "binding": "id"
-        }
-    ],
-    "roles.destroy": [
-        {
-            "name": "role",
-            "required": true,
-            "binding": "id"
-        }
-    ],
     "users.index": [],
     "users.create": [],
     "users.store": [],
@@ -66,7 +36,38 @@ declare module 'ziggy-js' {
             "binding": "id"
         }
     ],
+    "users.roles.index": [],
+    "users.roles.create": [],
+    "users.roles.store": [],
+    "users.roles.show": [
+        {
+            "name": "role",
+            "required": true
+        }
+    ],
+    "users.roles.edit": [
+        {
+            "name": "role",
+            "required": true,
+            "binding": "id"
+        }
+    ],
+    "users.roles.update": [
+        {
+            "name": "role",
+            "required": true,
+            "binding": "id"
+        }
+    ],
+    "users.roles.destroy": [
+        {
+            "name": "role",
+            "required": true,
+            "binding": "id"
+        }
+    ],
     "settings.index": [],
+    "settings.update": [],
     "register": [],
     "login": [],
     "password.request": [],

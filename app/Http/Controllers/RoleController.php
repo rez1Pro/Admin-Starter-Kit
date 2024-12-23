@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Data\RoleData;
-use App\Enums\Enums\BasePermissionEnums;
+use App\Enums\BasePermissionEnums;
 use App\Models\Role;
 use App\Models\Permission;
 use Illuminate\Http\Request;
