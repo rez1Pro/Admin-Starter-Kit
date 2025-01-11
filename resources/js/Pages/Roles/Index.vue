@@ -24,33 +24,34 @@ const columns = [
 
     <Head title="Role Management" />
 
-    <AuthenticatedLayout>
+    <AuthenticatedLayout header="Role Management" description="Manage user roles and their permissions">
         <div class="space-y-6">
-            <!-- Header -->
-            <div class="flex justify-between items-center">
-                <div>
-                    <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Role Management</h1>
-                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage user roles and their permissions</p>
-                </div>
-                <Link :href="route('users.roles.create')"
-                    class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors duration-200">
-                <PlusIcon class="w-5 h-5" />
-                Create Role
-                </Link>
-            </div>
-
             <!-- Roles List -->
-            <LaraTable :columns="columns" :items="props.roles" search-key="name">
-                <template #actions="{ item }">
-                    <div class="flex gap-2">
-                        <Link class="px-4 py-2 bg-emerald-500 text-white rounded-md"
-                            :href="route('users.roles.edit', item.id)">
-                        Edit</Link>
-                        <Link class="px-4 py-2 bg-red-500 text-white rounded-md"
-                            :href="route('users.roles.destroy', item.id)">Delete</Link>
-                    </div>
-                </template>
-            </LaraTable>
+            <div class="border rounded-lg p-3 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                <LaraTable :columns="columns" :items="props.roles" search-key="name" enableAddItem>
+                    <template #add-item>
+                        <div class="flex justify-end items-center">
+                            <Link :href="route('users.roles.create')"
+                                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 transition-colors duration-200">
+                            <PlusIcon class="w-5 h-5" />
+                            Create Role
+                            </Link>
+                        </div>
+                    </template>
+
+                    <template #actions="{ item }">
+                        <div class="flex gap-2">
+                            <Link
+                                class="px-4 py-2 bg-emerald-500 text-white rounded-md hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500"
+                                :href="route('users.roles.edit', item.id)">
+                            Edit</Link>
+                            <Link
+                                class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-500"
+                                :href="route('users.roles.destroy', item.id)">Delete</Link>
+                        </div>
+                    </template>
+                </LaraTable>
+            </div>
         </div>
     </AuthenticatedLayout>
 </template>

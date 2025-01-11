@@ -22,14 +22,8 @@ const columns = reactive([
 
     <Head title="User Management" />
 
-    <AuthenticatedLayout>
-        <div class="space-y-6">
-            <div class="flex justify-between items-center">
-                <div>
-                    <h1 class="text-2xl font-semibold text-gray-900">User Management</h1>
-                    <p class="mt-1 text-sm text-gray-500">Manage system users</p>
-                </div>
-            </div>
+    <AuthenticatedLayout header="User Management" description="Manage system users">
+        <div class="space-y-6 p-3 rounded-lg bg-white dark:bg-gray-800 shadow-md dark:shadow-gray-900/50">
             <LaraTable :columns="columns" :items="props.users">
                 <template #role="{ item }">
                     {{ item.role.name }}

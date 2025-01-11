@@ -2,11 +2,7 @@
 
 namespace App\Enums;
 
-use App\Enums\Permissions\RolePermissionEnums;
-use App\Enums\Permissions\SettingPermissionEnums;
-use App\Enums\Permissions\UserPermissionEnums;
 use App\Traits\UseBaseEnum;
-use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 enum BasePermissionEnums
 {
@@ -15,29 +11,42 @@ enum BasePermissionEnums
     // Get Group wise permissions
     static function getGroupWithPermissions(): array
     {
-        return [
-            [
-                "name" => "User",
-                "permissions" => UserPermissionEnums::getValuesWithNames()
-            ],
-            [
-                "name" => "Role",
-                "permissions" => RolePermissionEnums::getValuesWithNames()
-            ],
-            [
-                "name" => "Setting",
-                "permissions" => SettingPermissionEnums::getValuesWithNames()
-            ]
-        ];
+
+        $permissions = [];
+        $files = glob(app_path('Enums/Permissions/*.php'));
+
+        foreach ($files as $file) {
+            $className = basename($file, '.php');
+            $fullClassName = "App\\Enums\\Permissions\\{$className}";
+
+            if (class_exists($fullClassName)) {
+                $name = str_replace('PermissionEnums', '', $className);
+                $permissions[] = [
+                    'name' => $name,
+                    'permissions' => $fullClassName::getValuesWithNames()
+                ];
+            }
+        }
+
+        return $permissions;
     }
 
     // Get all permissions
     static function getAllPermissionList(): array
     {
-        return [
-            ...UserPermissionEnums::getValues(),
-            ...RolePermissionEnums::getValues(),
-            ...SettingPermissionEnums::getValues()
-        ];
+
+        $permissions = [];
+        $files = glob(app_path('Enums/Permissions/*.php'));
+
+        foreach ($files as $file) {
+            $className = basename($file, '.php');
+            $fullClassName = "App\\Enums\\Permissions\\{$className}";
+
+            if (class_exists($fullClassName)) {
+                $permissions = array_merge($permissions, $fullClassName::getValues());
+            }
+        }
+
+        return $permissions;
     }
 }

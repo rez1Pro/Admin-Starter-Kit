@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import {
-ArrowLeftIcon,
-CheckCircleIcon,
-CheckIcon,
-KeyIcon,
-ShieldCheckIcon,
-UserGroupIcon,
+    ArrowLeftIcon,
+    CheckCircleIcon,
+    CheckIcon,
+    KeyIcon,
+    ShieldCheckIcon,
+    UserGroupIcon,
 } from '@heroicons/vue/24/outline';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
@@ -112,30 +112,13 @@ const submit = () => {
 </script>
 
 <template>
-    <AuthenticatedLayout>
+    <AuthenticatedLayout header="Create new role!" description="You can any type of role using permission!">
 
         <Head title="Create Role" />
 
-        <div class="space-y-8 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-            <!-- Header with Steps -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm py-5 px-6">
-                <div class="flex items-center py-2 justify-start gap-2">
-                    <div>
-                        <Link :href="route('users.roles.index')"
-                            class="group flex items-center justify-center h-10 w-10 rounded-lg bg-gray-50 dark:bg-gray-700/50 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition-all duration-200">
-                        <ArrowLeftIcon
-                            class="h-5 w-5 text-gray-500 dark:text-gray-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400" />
-                        </Link>
-                    </div>
-                    <div>
-                        <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Create Role</h1>
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Configure role details</p>
-                    </div>
-                </div>
-            </div>
-
+        <div class="space-y-8 mx-auto">
             <!-- Main Content -->
-            <div class="grid grid-cols-12 gap-6" style="margin: 50px 0 50px 0;">
+            <div class="grid grid-cols-12 gap-6">
                 <!-- Role Information -->
                 <div class="col-span-6 lg:col-span-4">
                     <div class="space-y-6 sticky top-20">

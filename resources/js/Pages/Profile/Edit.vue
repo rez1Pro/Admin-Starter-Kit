@@ -12,38 +12,28 @@ defineProps<{
 </script>
 
 <template>
+
     <Head title="Profile" />
 
-    <AuthenticatedLayout>
+    <AuthenticatedLayout header="Profile" description="You can update you profile data">
         <template #header>
-            <h2
-                class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200"
-            >
+            <div class="max-w-7xl pl-14 text-2xl">
                 Profile
-            </h2>
+                <p class="text-sm">You can update you profile!</p>
+            </div>
         </template>
-
         <div class="py-12">
             <div class="mx-auto max-w-7xl space-y-6 sm:px-6 lg:px-8">
-                <div
-                    class="bg-white p-4 shadow sm:rounded-lg sm:p-8 dark:bg-gray-800"
-                >
-                    <UpdateProfileInformationForm
-                        :must-verify-email="mustVerifyEmail"
-                        :status="status"
-                        class="max-w-xl"
-                    />
+                <div class="bg-white p-4 shadow sm:rounded-lg sm:p-8 dark:bg-gray-800">
+                    <UpdateProfileInformationForm :must-verify-email="mustVerifyEmail" :status="status"
+                        class="max-w-xl" />
                 </div>
 
-                <div
-                    class="bg-white p-4 shadow sm:rounded-lg sm:p-8 dark:bg-gray-800"
-                >
+                <div class="bg-white p-4 shadow sm:rounded-lg sm:p-8 dark:bg-gray-800">
                     <UpdatePasswordForm class="max-w-xl" />
                 </div>
 
-                <div
-                    class="bg-white p-4 shadow sm:rounded-lg sm:p-8 dark:bg-gray-800"
-                >
+                <div class="bg-white p-4 shadow sm:rounded-lg sm:p-8 dark:bg-gray-800">
                     <DeleteUserForm class="max-w-xl" />
                 </div>
             </div>

@@ -142,56 +142,38 @@ const chartOptions = {
 </script>
 
 <template>
+
     <Head title="Dashboard" />
 
-    <AuthenticatedLayout>
+    <AuthenticatedLayout header="Welcome back, Admin!" description="Here's what's happening with your business today.">
         <div class="space-y-6">
-            <!-- Welcome Section -->
-            <div class="flex justify-between items-center">
-                <div>
-                    <h1 class="text-2xl font-semibold text-gray-900">Welcome back, Admin!</h1>
-                    <p class="mt-1 text-sm text-gray-500">Here's what's happening with your business today.</p>
-                </div>
-                <button class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-                    Download Report
-                </button>
-            </div>
-
             <!-- Stats Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div
-                    v-for="stat in stats"
-                    :key="stat.name"
-                    class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow"
-                >
+                <div v-for="stat in stats" :key="stat.name"
+                    class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-sm font-medium text-gray-500">{{ stat.name }}</p>
-                            <p class="mt-2 text-3xl font-semibold text-gray-900">{{ stat.value }}</p>
+                            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ stat.name }}</p>
+                            <p class="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">{{ stat.value }}</p>
                         </div>
                         <div :class="[
                             'p-3 rounded-lg',
-                            stat.changeType === 'positive' ? 'bg-green-50' : 'bg-red-50'
+                            stat.changeType === 'positive' ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'
                         ]">
-                            <component
-                                :is="stat.icon"
-                                :class="[
-                                    'w-6 h-6',
-                                    stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'
-                                ]"
-                            />
+                            <component :is="stat.icon" :class="[
+                                'w-6 h-6',
+                                stat.changeType === 'positive' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                            ]" />
                         </div>
                     </div>
                     <div class="mt-4 flex items-center">
-                        <span
-                            :class="[
-                                'text-sm font-medium',
-                                stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'
-                            ]"
-                        >
+                        <span :class="[
+                            'text-sm font-medium',
+                            stat.changeType === 'positive' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                        ]">
                             {{ stat.change }}
                         </span>
-                        <span class="ml-2 text-sm text-gray-500">from last month</span>
+                        <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">from last month</span>
                     </div>
                 </div>
             </div>
@@ -199,16 +181,16 @@ const chartOptions = {
             <!-- Charts Section -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- Sales Chart -->
-                <div class="bg-white rounded-xl shadow-sm p-6">
-                    <h2 class="text-lg font-semibold text-gray-900">Sales Overview</h2>
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Sales Overview</h2>
                     <div class="mt-4 h-80">
                         <Line :data="salesData" :options="chartOptions" />
                     </div>
                 </div>
 
                 <!-- Revenue Chart -->
-                <div class="bg-white rounded-xl shadow-sm p-6">
-                    <h2 class="text-lg font-semibold text-gray-900">Revenue Analytics</h2>
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Revenue Analytics</h2>
                     <div class="mt-4 h-80">
                         <Bar :data="revenueData" :options="chartOptions" />
                     </div>
@@ -218,47 +200,39 @@ const chartOptions = {
             <!-- Bottom Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- Recent Activities -->
-                <div class="bg-white rounded-xl shadow-sm p-6">
-                    <h2 class="text-lg font-semibold text-gray-900">Recent Activities</h2>
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Recent Activities</h2>
                     <div class="mt-4 space-y-4">
-                        <div
-                            v-for="(activity, index) in recentActivities"
-                            :key="index"
-                            class="flex items-center space-x-4"
-                        >
-                            <img
-                                :src="activity.avatar"
-                                :alt="activity.user"
-                                class="w-10 h-10 rounded-full"
-                            />
+                        <div v-for="(activity, index) in recentActivities" :key="index"
+                            class="flex items-center space-x-4">
+                            <img :src="activity.avatar" :alt="activity.user" class="w-10 h-10 rounded-full" />
                             <div class="flex-1">
-                                <p class="text-sm text-gray-900">
+                                <p class="text-sm text-gray-900 dark:text-gray-100">
                                     <span class="font-medium">{{ activity.user }}</span>
                                     {{ activity.action }}
                                 </p>
-                                <p class="text-xs text-gray-500">{{ activity.time }}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ activity.time }}</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Top Products -->
-                <div class="bg-white rounded-xl shadow-sm p-6">
-                    <h2 class="text-lg font-semibold text-gray-900">Top Products</h2>
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Top Products</h2>
                     <div class="mt-4">
                         <div class="space-y-4">
-                            <div
-                                v-for="(product, index) in topProducts"
-                                :key="index"
-                                class="flex items-center justify-between"
-                            >
+                            <div v-for="(product, index) in topProducts" :key="index"
+                                class="flex items-center justify-between">
                                 <div>
-                                    <p class="text-sm font-medium text-gray-900">{{ product.name }}</p>
-                                    <p class="text-xs text-gray-500">{{ product.sales }} sales</p>
+                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ product.name }}
+                                    </p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ product.sales }} sales</p>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-sm font-medium text-gray-900">{{ product.revenue }}</p>
-                                    <p class="text-xs text-green-600">{{ product.growth }}</p>
+                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ product.revenue
+                                        }}</p>
+                                    <p class="text-xs text-green-600 dark:text-green-400">{{ product.growth }}</p>
                                 </div>
                             </div>
                         </div>

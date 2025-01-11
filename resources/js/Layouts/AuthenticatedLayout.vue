@@ -11,6 +11,7 @@ import {
     BellIcon,
     ChevronDownIcon,
     Cog6ToothIcon,
+    ExclamationCircleIcon,
     HomeIcon,
     MagnifyingGlassIcon, ShieldCheckIcon,
     UserGroupIcon,
@@ -32,6 +33,13 @@ const navigation = reactive<Navigation[]>([
         permissions: ['any']
     },
     {
+        name: 'Example',
+        href: route('example'),
+        icon: ExclamationCircleIcon,
+        current: route().current('example'),
+        permissions: ['view:example']
+    },
+    {
         name: 'User Management',
         icon: UsersIcon,
         current: route().current('users.*'),
@@ -49,7 +57,7 @@ const navigation = reactive<Navigation[]>([
                 name: 'Roles',
                 href: route('users.roles.index'),
                 icon: ShieldCheckIcon,
-                current: route().current('users.roles.index'),
+                current: route().current('users.roles.*'),
                 permission: 'role:view'
             }
         ]
@@ -64,6 +72,16 @@ const navigation = reactive<Navigation[]>([
 ]);
 
 
+const props = defineProps({
+    header: {
+        type: String,
+        required: true
+    },
+    description: {
+        type: String,
+        required: true
+    }
+})
 
 const showingSidebar = ref(window.innerWidth >= 1024);
 const showingUserMenu = ref(false);
@@ -309,7 +327,7 @@ onUnmounted(() => {
                                                 class="group relative flex items-center gap-2 rounded-lg py-2 pl-12 pr-3 text-sm font-medium transition-all duration-200"
                                                 :class="[
                                                     subitem.current
-                                                        ? 'bg-emerald-500 text-white'
+                                                        ? 'bg-emerald-700 text-white'
                                                         : 'text-gray-600 hover:bg-emerald-50 dark:text-gray-400 dark:hover:bg-emerald-900/30'
                                                 ]">
                                             <!-- Hover Effect Background -->
@@ -526,7 +544,17 @@ onUnmounted(() => {
 
             <!-- Page Content -->
             <main class="p-4 sm:p-6">
-                <slot />
+                <slot name="header">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ header }}</h1>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-50">{{ description }}</p>
+                        </div>
+                    </div>
+                </slot>
+                <div class="my-4">
+                    <slot />
+                </div>
             </main>
         </div>
     </div>

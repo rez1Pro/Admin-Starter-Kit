@@ -17,7 +17,6 @@ class PermissionSeeder extends Seeder
      */
     public function run(): void
     {
-
         foreach (RoleEnums::getValues() as $role) {
             Role::create([
                 'name' => $role,
