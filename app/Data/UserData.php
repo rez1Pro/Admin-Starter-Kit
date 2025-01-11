@@ -14,6 +14,7 @@ class UserData extends Data
     public string $name,
     public string $email,
     public ?string $phone,
+    public ?string $email_verified_at,
     public RoleData $role,
   ) {
     //

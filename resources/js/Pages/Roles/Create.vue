@@ -12,7 +12,7 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
 const props = defineProps({
-    permissionGroups: Array,
+    permissionGroups: Array<any>,
 });
 
 const form = useForm({
@@ -21,22 +21,23 @@ const form = useForm({
     permissions: [] as number[],
 });
 
-// Frontend validation rules
+type ValidationRule<T> = (value: T) => string | true;
+
 const validationRules = {
     name: [
-        (v: string) => !!v || 'Name is required',
-        (v: string) => v.length >= 3 || 'Name must be at least 3 characters',
-        (v: string) => v.length <= 50 || 'Name must be less than 50 characters'
+        (v: string): string | true => !!v || 'Name is required',
+        (v: string): string | true => v.length >= 3 || 'Name must be at least 3 characters',
+        (v: string): string | true => v.length <= 50 || 'Name must be less than 50 characters'
     ],
     description: [
-        (v: string) => !!v || 'Description is required',
-        (v: string) => v.length >= 10 || 'Description must be at least 10 characters',
-        (v: string) => v.length <= 200 || 'Description must be less than 200 characters'
+        (v: string): string | true => !!v || 'Description is required',
+        (v: string): string | true => v.length >= 10 || 'Description must be at least 10 characters',
+        (v: string): string | true => v.length <= 200 || 'Description must be less than 200 characters'
     ],
     permissions: [
-        (v: number[]) => v.length > 0 || 'At least one permission must be selected'
+        (v: number[]): string | true => v.length > 0 || 'At least one permission must be selected'
     ]
-};
+} satisfies Record<string, ValidationRule<any>[]>;
 
 // Validation errors
 const validationErrors = ref({
@@ -48,8 +49,8 @@ const validationErrors = ref({
 // Validate single field
 const validateField = (field: string, value: any) => {
     const rules = validationRules[field as keyof typeof validationRules];
-    const error = rules.find(rule => typeof rule(value) === 'string');
-    validationErrors.value[field as keyof typeof validationErrors.value] = error ? error(value) : '';
+    const error = rules.find(rule => rule(value) !== true);
+    validationErrors.value[field as keyof typeof validationErrors.value] = error ? error(value) as string : '';
     return !error;
 };
 
@@ -91,7 +92,7 @@ const hasErrors = computed(() =>
 );
 
 const getErrorMessage = (field: string) => {
-    return validationErrors.value[field as keyof typeof validationErrors.value] || form.errors[field];
+    return validationErrors.value[field as keyof typeof validationErrors.value] || (form.errors as any)[field];
 };
 
 const submit = () => {
