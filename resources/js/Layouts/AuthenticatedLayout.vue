@@ -202,15 +202,23 @@ onUnmounted(() => {
 const menuItemClasses = computed(() => ({
     base: `group relative flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-300`,
     active: `bg-gray-800/90 dark:bg-gray-800/90 
-             text-white dark:text-white shadow-lg shadow-gray-900/20 dark:shadow-gray-900/10
+             text-white dark:text-white
              before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 
              before:h-8 before:w-1 before:rounded-r-lg 
              before:bg-gray-300 dark:before:bg-gray-500`,
     inactive: `text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800 
                hover:text-gray-900 dark:hover:text-white`,
+    activeSubmenu: `text-gray-900 font-semibold tracking-wide bg-gray-200/90 dark:bg-gray-800/90
+              hover:bg-gray-200/90 dark:hover:bg-gray-700/90 transition-all duration-300 ease-in-out
+               border-gray-400 dark:border-gray-500 pl-2.5
+              dark:text-gray-200 hover:text-gray-900 dark:hover:text-white
+               dark:shadow-gray-800/20  before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 
+             before:h-8 before:w-1 before:rounded-r-lg 
+             before:bg-gray-400 dark:before:bg-gray-500`,
     icon: {
         wrapper: `flex h-6 w-8 items-center justify-center rounded-xl transition-all duration-300 group-hover:scale-110`,
         active: `text-white dark:text-blue-400`,
+        activeSubmenu: `hover:bg-gray-500/40 dark:hover:bg-gray-800 dark:hover:text-gray-900`,
         inactive: `text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-white`
     }
 }));
@@ -248,15 +256,14 @@ const menuItemClasses = computed(() => ({
                 </div>
 
                 <!-- Navigation - reduced padding -->
-                <nav class="flex-1 space-y-0.9 px-2 py-2">
+                <nav class="flex-1 space-y-1 px-2 py-2">
                     <!-- Section spacing -->
-                    <div v-for="(item, index) in navigation" :key="item.name"
-                        :class="{ 'mt-4': index > 0 && item.submenu }">
+                    <div v-for="(item, index) in navigation" :key="item.name" class="space-y-1">
                         <Link
-                            v-if="!item.submenu && (!item.permissions || item.permissions.some(p => hasPermission(p)))"
+                            v-if="!item.submenu && (!item.permissions || item.permissions.some(p => hasPermission(p as string)))"
                             :href="item.href" :class="[
                                 menuItemClasses.base,
-                                'px-3 py-2', // Reduced padding
+                                'px-3 py-2', // Adjusted padding
                                 item.current ? menuItemClasses.active : menuItemClasses.inactive
                             ]">
                         <div :class="[
@@ -270,20 +277,34 @@ const menuItemClasses = computed(() => ({
 
                         <!-- Submenu items with reduced spacing -->
                         <template v-if="item.submenu">
-                            <div class="px-2 mb-0.5 text-xs font-medium text-gray-400 uppercase tracking-wider">
-                                {{ item.name }}
-                            </div>
-                            <div class="space-y-0.5">
+                            <button @click="toggleMenu(item.name)" class="w-full" :class="[
+                                menuItemClasses.base,
+                                'px-3 py-2 my-1',
+                                isActiveMenu(item) ? menuItemClasses.active : menuItemClasses.inactive
+                            ]">
+                                <div :class="[
+                                    menuItemClasses.icon.wrapper,
+                                    isActiveMenu(item) ? menuItemClasses.icon.active : menuItemClasses.icon.inactive
+                                ]">
+                                    <component :is="item.icon" class="h-5 w-5" />
+                                </div>
+                                <span>{{ item.name }}</span>
+                                <ChevronDownIcon class="ml-auto h-5 w-5 transform transition-transform duration-200"
+                                    :class="{ 'rotate-180': isMenuExpanded(item.name) }" />
+                            </button>
+
+                            <!-- Submenu items -->
+                            <div v-show="isMenuExpanded(item.name)" class="mt-1 space-y-1 pl-4">
                                 <div v-for="subitem in item.submenu" :key="subitem.name"
                                     v-show="!subitem.permission || hasPermission(subitem.permission as string)">
                                     <Link :href="subitem.href" :class="[
                                         menuItemClasses.base,
-                                        'px-3 py-2', // Reduced padding
-                                        subitem.current ? menuItemClasses.active : menuItemClasses.inactive
+                                        'px-3 py-2',
+                                        subitem.current ? menuItemClasses.activeSubmenu : menuItemClasses.inactive
                                     ]">
                                     <div :class="[
                                         menuItemClasses.icon.wrapper,
-                                        subitem.current ? menuItemClasses.icon.active : menuItemClasses.icon.inactive
+                                        subitem.current ? menuItemClasses.icon.activeSubmenu : menuItemClasses.icon.inactive
                                     ]">
                                         <component :is="subitem.icon" class="h-5 w-5" />
                                     </div>
@@ -406,24 +427,49 @@ const menuItemClasses = computed(() => ({
             </header>
 
             <!-- Main content area - improved responsive padding -->
-            <main class="p-2 sm:p-6 lg:p-5 max-w-7xl mx-auto">
+            <main class="py-6 px-4 sm:px-6 lg:px-8 mx-auto">
                 <slot name="header">
-                    <div class="flex flex-col gap-4 mb-6">
-
+                    <div class="mb-6">
+                        <!-- Breadcrumb -->
+                        <nav class="flex mb-4" aria-label="Breadcrumb">
+                            <ol class="inline-flex flex-wrap items-center">
+                                <li class="flex items-center">
+                                    <Link :href="route('dashboard')"
+                                        class="group inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white rounded-lg hover:bg-gray-50/80 dark:hover:bg-gray-800/80 transition-all duration-200">
+                                    <HomeIcon
+                                        class="w-4 h-4 mr-2 group-hover:scale-110 transition-transform duration-200" />
+                                    Home
+                                    </Link>
+                                </li>
+                                <li v-for="(crumb, index) in breadcrumbs" :key="index" class="flex items-center">
+                                    <ChevronRightIcon class="w-4 h-4 mx-1 text-gray-400 flex-shrink-0" />
+                                    <Link v-if="crumb.href" :href="crumb.href"
+                                        class="group inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white rounded-lg hover:bg-gray-50/80 dark:hover:bg-gray-800/80 transition-all duration-200">
+                                    <span class="group-hover:translate-x-0.5 transition-transform duration-200">{{
+                                        crumb.name
+                                    }}</span>
+                                    </Link>
+                                    <span v-else
+                                        class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg">
+                                        {{ crumb.name }}
+                                    </span>
+                                </li>
+                            </ol>
+                        </nav>
 
                         <!-- Header Content -->
-                        <div class="flex flex-col gap-1.5">
+                        <div class="flex flex-col gap-2">
                             <h1
                                 class="text-2xl font-bold bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-300 dark:to-gray-500 bg-clip-text text-transparent tracking-tight">
                                 {{ header }}
                             </h1>
-                            <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                            <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed max-w-3xl">
                                 {{ description }}
                             </p>
                         </div>
                     </div>
                 </slot>
-                <div class="my-4">
+                <div>
                     <slot />
                 </div>
             </main>
