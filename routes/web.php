@@ -28,7 +28,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::group(['prefix' => 'users', 'as' => 'users.'], function () {
         Route::resource('/', UserController::class)->parameter('', 'user')->whereNumber('user');
-        Route::resource('roles', RoleController::class)->parameter('', 'role')->whereNumber('role');
+        Route::resource('roles', RoleController::class)
+            ->parameter('', 'role')
+            ->whereNumber('role')
+            ->except(['show']);
     });
     // Settings
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index')->middleware('check:setting:view');

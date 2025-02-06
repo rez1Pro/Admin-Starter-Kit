@@ -406,15 +406,20 @@ const menuItemClasses = computed(() => ({
             </header>
 
             <!-- Main content area - improved responsive padding -->
-            <main class="p-4 sm:p-6 lg:p-5 max-w-7xl mx-auto">
+            <main class="p-2 sm:p-6 lg:p-5 max-w-7xl mx-auto">
                 <slot name="header">
-                    <div class="flex justify-between items-center mb-6">
-                        <div>
+                    <div class="flex flex-col gap-4 mb-6">
+
+
+                        <!-- Header Content -->
+                        <div class="flex flex-col gap-1.5">
                             <h1
-                                class="text-2xl font-bold bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-300 dark:to-gray-500 bg-clip-text text-transparent">
+                                class="text-2xl font-bold bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-300 dark:to-gray-500 bg-clip-text text-transparent tracking-tight">
                                 {{ header }}
                             </h1>
-                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ description }}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                                {{ description }}
+                            </p>
                         </div>
                     </div>
                 </slot>

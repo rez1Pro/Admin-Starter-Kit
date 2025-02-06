@@ -20,9 +20,8 @@ enum BasePermissionEnums
             $fullClassName = "App\\Enums\\Permissions\\{$className}";
 
             if (class_exists($fullClassName)) {
-                $name = str_replace('PermissionEnums', '', $className);
                 $permissions[] = [
-                    'name' => $name,
+                    'name' => preg_replace('/(?<!^)[A-Z]/', ' $0', $className),
                     'permissions' => $fullClassName::getValuesWithNames()
                 ];
             }

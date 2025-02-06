@@ -8,11 +8,22 @@ use App\Models\Role;
 use App\Models\Permission;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Illuminate\Support\Str;
 use Spatie\QueryBuilder\QueryBuilder;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use App\Enums\Permissions\RolePermissions;
 
-class RoleController extends Controller
+class RoleController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            checkPermission(RolePermissions::VIEW_ROLE, only: ['index']),
+            checkPermission(RolePermissions::CREATE_ROLE, only: ['create', 'store']),
+            checkPermission(RolePermissions::UPDATE_ROLE, only: ['edit', 'update']),
+            checkPermission(RolePermissions::DELETE_ROLE, only: ['destroy']),
+        ];
+    }
+
     public function index()
     {
         return Inertia::render('Roles/Index', [
@@ -38,7 +49,7 @@ class RoleController extends Controller
             'name' => 'required|string|max:255|unique:roles',
             'description' => 'nullable|string',
             'permissions' => 'required|array',
-            'permissions.*' => 'exists:permissions,id'
+            'permissions.*' => 'exists:permissions,name'
         ]);
 
         $role = Role::create([
@@ -46,20 +57,17 @@ class RoleController extends Controller
             'description' => $validated['description'],
         ]);
 
-        $role->permissions()->sync($validated['permissions']);
+        $role->permissions()->sync(Permission::whereIn('name', $validated['permissions'])->pluck('id'));
 
-        return redirect()->route('roles.index')
+        return redirect()->route('users.roles.index')
             ->with('success', 'Role created successfully.');
     }
 
     public function edit(Role $role)
     {
-        $role->load('permissions');
-        $permissions = Permission::all()->groupBy('group');
-
         return Inertia::render('Roles/Edit', [
-            'role' => $role,
-            'permissions' => $permissions
+            'role' => RoleData::from($role->load('permissions')),
+            'existingPermissions' => BasePermissionEnums::getGroupWithPermissions()
         ]);
     }
 
@@ -69,25 +77,43 @@ class RoleController extends Controller
             'name' => 'required|string|max:255|unique:roles,name,' . $role->id,
             'description' => 'nullable|string',
             'permissions' => 'required|array',
-            'permissions.*' => 'exists:permissions,id'
+            'permissions.*' => 'exists:permissions,name'
+        ], [
+            'permissions.required' => 'Please select at least one permission.',
+            'permissions.*.exists' => 'The :attribute selected is invalid.'
         ]);
+
+        if ($role->id == 1) {
+            return redirect()->back()
+                ->with('error', 'Admin role cannot be updated.');
+        }
 
         $role->update([
             'name' => $validated['name'],
             'description' => $validated['description'],
         ]);
 
-        $role->permissions()->sync($validated['permissions']);
+        $role->permissions()->sync(Permission::whereIn('name', $validated['permissions'])->pluck('id'));
 
-        return redirect()->route('roles.index')
+        return redirect()->back()
             ->with('success', 'Role updated successfully.');
     }
 
     public function destroy(Role $role)
     {
-        $role->delete();
+        if ($role->id === 1) {
+            return redirect()->route('users.roles.index')
+                ->with('error', 'Admin role cannot be deleted.');
+        }
 
-        return redirect()->route('roles.index')
+        try {
+            $role->delete();
+        } catch (\Exception $e) {
+            return redirect()->route('users.roles.index')
+                ->with('error', 'Role deletion failed. Maybe this role is assigned to some users.');
+        }
+
+        return redirect()->route('users.roles.index')
             ->with('success', 'Role deleted successfully.');
     }
 }

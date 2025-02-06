@@ -4,7 +4,7 @@ namespace App\Enums\Permissions;
 
 use App\Traits\UseBaseEnum;
 
-enum ExamplePermissionEnums: string
+enum ExamplePermissions: string
 {
     use UseBaseEnum;
 
