@@ -198,241 +198,126 @@ onUnmounted(() => {
     document.removeEventListener('click', closeDropdowns);
 });
 
+// Update the menuItemClasses computed property for more modern styling
+const menuItemClasses = computed(() => ({
+    base: `group relative flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-300`,
+    active: `bg-gray-800/90 dark:bg-gray-800/90 
+             text-white dark:text-white shadow-lg shadow-gray-900/20 dark:shadow-gray-900/10
+             before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 
+             before:h-8 before:w-1 before:rounded-r-lg 
+             before:bg-gray-300 dark:before:bg-gray-500`,
+    inactive: `text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800 
+               hover:text-gray-900 dark:hover:text-white`,
+    icon: {
+        wrapper: `flex h-6 w-8 items-center justify-center rounded-xl transition-all duration-300 group-hover:scale-110`,
+        active: `text-white dark:text-blue-400`,
+        inactive: `text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-white`
+    }
+}));
+
 </script>
 
 <template>
-    <div class="min-h-screen bg-gray-50/50 dark:bg-gray-900">
+    <div
+        class="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
         <FlashMessage />
 
-        <!-- Sidebar Backdrop -->
-        <div v-if="showingSidebar" class="fixed inset-0 z-40 bg-gray-900/50 lg:hidden" @click="closeSidebar"></div>
+        <!-- Sidebar Backdrop - improved mobile overlay -->
+        <div v-if="showingSidebar"
+            class="fixed inset-0 z-[49] bg-gray-900/70 backdrop-blur-sm transition-opacity lg:hidden"
+            @click="closeSidebar">
+        </div>
 
-        <!-- Sidebar -->
+        <!-- Sidebar - improved mobile positioning -->
         <aside :class="[
-            'fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-300 ease-in-out lg:translate-x-0',
+            'fixed inset-y-0 left-0 z-50 w-64 transform overflow-y-auto overscroll-contain',
+            'transition-all duration-300 ease-in-out lg:translate-x-0 lg:w-72',
             showingSidebar ? 'translate-x-0' : '-translate-x-full'
         ]">
-            <div class="flex h-full flex-col bg-white dark:bg-gray-800 shadow-xl">
-                <!-- Logo Section with Gradient Border -->
-                <div class="relative">
-                    <div class="flex h-16 items-center gap-2 px-6 bg-white dark:bg-gray-800">
-                        <Link href="/" class="flex items-center gap-2 group">
-                        <div class="relative">
-                            <div
-                                class="absolute -inset-1.5 bg-emerald-100 dark:bg-emerald-900/50 rounded-lg blur-sm group-hover:blur transition-all">
-                            </div>
-                            <ApplicationLogo
-                                class="relative h-8 w-8 text-emerald-600 dark:text-emerald-500 transition-colors" />
+            <div
+                class="flex h-full flex-col bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-r border-gray-200/30 dark:border-gray-700/30">
+                <!-- Logo Section - further reduced height -->
+                <div class="flex h-14 items-center px-4 border-b border-gray-200/30 dark:border-gray-700/20">
+                    <Link href="/" class="flex items-center gap-2 transition-opacity hover:opacity-80">
+                    <ApplicationLogo class="h-7 w-7 text-gray-700 dark:text-gray-300" />
+                    <span
+                        class="text-sm font-semibold bg-gradient-to-r from-gray-700 to-white bg-clip-text text-transparent">
+                        {{ page.props.app_name }}
+                    </span>
+                    </Link>
+                </div>
+
+                <!-- Navigation - reduced padding -->
+                <nav class="flex-1 space-y-0.9 px-2 py-2">
+                    <!-- Section spacing -->
+                    <div v-for="(item, index) in navigation" :key="item.name"
+                        :class="{ 'mt-4': index > 0 && item.submenu }">
+                        <Link
+                            v-if="!item.submenu && (!item.permissions || item.permissions.some(p => hasPermission(p)))"
+                            :href="item.href" :class="[
+                                menuItemClasses.base,
+                                'px-3 py-2', // Reduced padding
+                                item.current ? menuItemClasses.active : menuItemClasses.inactive
+                            ]">
+                        <div :class="[
+                            menuItemClasses.icon.wrapper,
+                            item.current ? menuItemClasses.icon.active : menuItemClasses.icon.inactive
+                        ]">
+                            <component :is="item.icon" class="h-5 w-5" />
                         </div>
-                        <span
-                            class="text-lg font-bold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
-                            {{ page.props.app_name }}
-                        </span>
+                        <span>{{ item.name }}</span>
                         </Link>
-                    </div>
-                    <!-- Decorative Bottom Border -->
-                    <div
-                        class="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent">
-                    </div>
-                </div>
 
-                <!-- User Profile Section with Hover Effect -->
-                <div class="px-4 py-4 border-b border-gray-200 dark:border-gray-700">
-                    <div
-                        class="group relative p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer">
-                        <div class="flex items-center gap-3">
-                            <div class="relative">
-                                <div
-                                    class="absolute inset-0 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 animate-pulse group-hover:opacity-100 opacity-0 blur transition-opacity">
-                                </div>
-                                <img :src="`https://ui-avatars.com/api/?name=${user.name}&background=10B981&color=fff`"
-                                    :alt="user.name"
-                                    class="relative h-10 w-10 rounded-full border-2 border-emerald-200 dark:border-emerald-800">
+                        <!-- Submenu items with reduced spacing -->
+                        <template v-if="item.submenu">
+                            <div class="px-2 mb-0.5 text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                {{ item.name }}
                             </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
-                                    {{ user.name }}
-                                </p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
-                                    {{ user.email }}
-                                </p>
-                            </div>
-                            <div
-                                class="h-8 w-8 rounded-full flex items-center justify-center bg-gray-100 dark:bg-gray-700 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/30 transition-colors">
-                                <Cog6ToothIcon
-                                    class="h-4 w-4 text-gray-500 dark:text-gray-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400" />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Navigation with Enhanced Active States -->
-                <nav class="flex-1 px-2 py-2 overflow-y-auto">
-                    <!-- Navigation Menu -->
-                    <div class="space-y-0.5">
-                        <template v-for="item in navigation" :key="item.name">
-                            <!-- Only show menu items if user has any of the required permissions -->
-                            <template v-if="item.permissions.some((permission: any) => hasPermission(permission))">
-                                <!-- Menu Item with Submenu -->
-                                <div v-if="item.submenu" class="relative">
-                                    <!-- Only show submenu items if user has the specific permission -->
-                                    <template
-                                        v-if="item.submenu.some(subitem => !subitem.permission || hasPermission(subitem.permission))">
-                                        <!-- Menu Group Header -->
-                                        <button @click="toggleMenu(item.name)" @mouseenter="setHoveredMenu(item.name)"
-                                            @mouseleave="setHoveredMenu(null)"
-                                            class="group relative flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200"
-                                            :class="[
-                                                isActiveMenu(item)
-                                                    ? 'bg-emerald-500 text-white dark:bg-emerald-500'
-                                                    : 'text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/30',
-                                                isMenuExpanded(item.name) && !isActiveMenu(item)
-                                                    ? 'bg-gray-50 dark:bg-gray-700/50'
-                                                    : ''
-                                            ]">
-                                            <!-- Hover Effect Background -->
-                                            <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 opacity-0 transition-opacity duration-300"
-                                                :class="{ 'opacity-100': hoveredMenu === item.name && !isActiveMenu(item) }">
-                                            </div>
-
-                                            <!-- Content -->
-                                            <div class="relative flex items-center gap-3">
-                                                <div class="flex h-10 w-10 items-center justify-center rounded-lg"
-                                                    :class="[
-                                                        isActiveMenu(item)
-                                                            ? 'bg-emerald-600 text-white'
-                                                            : 'bg-gray-50 text-gray-600 dark:bg-gray-700 dark:text-gray-400 group-hover:bg-emerald-500/10 group-hover:text-emerald-600 dark:group-hover:text-emerald-400'
-                                                    ]">
-                                                    <component :is="item.icon"
-                                                        class="h-5 w-5 transition-colors duration-200" />
-                                                </div>
-                                                <div class="flex flex-col">
-                                                    <span>{{ item.name }}</span>
-                                                </div>
-                                            </div>
-
-                                            <!-- Dropdown Arrow -->
-                                            <ChevronDownIcon class="h-5 w-5 transition-transform duration-300" :class="[
-                                                isMenuExpanded(item.name) ? 'rotate-180' : '',
-                                                isActiveMenu(item) ? 'text-white' : 'text-gray-400 group-hover:text-emerald-600 dark:text-gray-500'
-                                            ]" />
-                                        </button>
-
-                                        <!-- Submenu -->
-                                        <div v-show="isMenuExpanded(item.name)" class="mt-0.5 space-y-0.5">
-                                            <Link v-for="subitem in item.submenu" :key="subitem.name"
-                                                v-show="!subitem.permission || hasPermission(subitem.permission as string)"
-                                                :href="subitem.href" @mouseenter="setHoveredMenu(subitem.name)"
-                                                @mouseleave="setHoveredMenu(null)"
-                                                class="group relative flex items-center gap-2 rounded-lg py-2 pl-12 pr-3 text-sm font-medium transition-all duration-200"
-                                                :class="[
-                                                    subitem.current
-                                                        ? 'bg-emerald-700 text-white'
-                                                        : 'text-gray-600 hover:bg-emerald-50 dark:text-gray-400 dark:hover:bg-emerald-900/30'
-                                                ]">
-                                            <!-- Hover Effect Background -->
-                                            <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 opacity-0 transition-opacity duration-300"
-                                                :class="{ 'opacity-100': hoveredMenu === subitem.name && !subitem.current }">
-                                            </div>
-
-                                            <!-- Content -->
-                                            <div class="relative flex items-center gap-2">
-                                                <component :is="subitem.icon" :class="[
-                                                    'h-4 w-4 transition-colors duration-200',
-                                                    subitem.current
-                                                        ? 'text-white'
-                                                        : 'text-gray-400 group-hover:text-emerald-600 dark:text-gray-500'
-                                                ]" />
-                                                {{ subitem.name }}
-                                            </div>
-                                            </Link>
-                                        </div>
-                                    </template>
-                                </div>
-
-                                <!-- Regular Menu Item -->
-                                <Link v-else :href="item.href" @mouseenter="setHoveredMenu(item.name)"
-                                    @mouseleave="setHoveredMenu(null)"
-                                    class="group relative flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200"
-                                    :class="[
-                                        item.current
-                                            ? 'bg-emerald-500 text-white'
-                                            : 'text-gray-700 hover:bg-emerald-50 dark:text-gray-300 dark:hover:bg-emerald-900/30'
+                            <div class="space-y-0.5">
+                                <div v-for="subitem in item.submenu" :key="subitem.name"
+                                    v-show="!subitem.permission || hasPermission(subitem.permission as string)">
+                                    <Link :href="subitem.href" :class="[
+                                        menuItemClasses.base,
+                                        'px-3 py-2', // Reduced padding
+                                        subitem.current ? menuItemClasses.active : menuItemClasses.inactive
                                     ]">
-                                <!-- Hover Effect Background -->
-                                <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 opacity-0 transition-opacity duration-300"
-                                    :class="{ 'opacity-100': hoveredMenu === item.name && !item.current }"></div>
-
-                                <!-- Content -->
-                                <div class="flex h-10 w-10 items-center justify-center rounded-lg" :class="[
-                                    item.current
-                                        ? 'bg-emerald-600 text-white'
-                                        : 'bg-gray-50 text-gray-600 dark:bg-gray-700 dark:text-gray-400 group-hover:bg-emerald-500/10 group-hover:text-emerald-600 dark:group-hover:text-emerald-400'
-                                ]">
-                                    <component :is="item.icon" class="h-5 w-5 transition-colors duration-200" />
+                                    <div :class="[
+                                        menuItemClasses.icon.wrapper,
+                                        subitem.current ? menuItemClasses.icon.active : menuItemClasses.icon.inactive
+                                    ]">
+                                        <component :is="subitem.icon" class="h-5 w-5" />
+                                    </div>
+                                    <span>{{ subitem.name }}</span>
+                                    </Link>
                                 </div>
-                                <span class="relative">{{ item.name }}</span>
-                                </Link>
-                            </template>
+                            </div>
                         </template>
                     </div>
                 </nav>
-
-                <!-- Bottom Section with Gradient Card -->
-                <div class="p-4 border-t border-gray-200 dark:border-gray-700">
-                    <div
-                        class="relative overflow-hidden rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 p-4 dark:from-emerald-900/30 dark:to-teal-900/30">
-                        <!-- Decorative Elements -->
-                        <div
-                            class="absolute top-0 right-0 -mt-4 -mr-4 h-16 w-16 rounded-full bg-emerald-500/10 blur-2xl">
-                        </div>
-                        <div
-                            class="absolute bottom-0 left-0 -mb-4 -ml-4 h-16 w-16 rounded-full bg-teal-500/10 blur-2xl">
-                        </div>
-
-                        <div class="relative">
-                            <div class="flex items-center gap-3">
-                                <div
-                                    class="h-10 w-10 rounded-full bg-gradient-to-r from-emerald-500/10 to-teal-500/10 flex items-center justify-center">
-                                    <BellIcon class="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                                </div>
-                                <div>
-                                    <p class="text-sm font-medium text-gray-900 dark:text-white">Need Help?</p>
-                                    <p class="text-xs text-gray-600 dark:text-gray-400">Check documentation</p>
-                                </div>
-                            </div>
-                            <button
-                                class="mt-3 w-full px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-emerald-600 to-teal-500 rounded-lg hover:from-emerald-500 hover:to-teal-400 transition-all duration-200 dark:from-emerald-500 dark:to-teal-400 dark:hover:from-emerald-400 dark:hover:to-teal-300 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
-                                View Documentation
-                            </button>
-                        </div>
-                    </div>
-                </div>
             </div>
         </aside>
 
-        <!-- Main Content -->
+        <!-- Main Content - improved responsive layout -->
         <div :class="[
-            'min-h-screen transition-all duration-300 ease-in-out',
-            showingSidebar ? 'lg:pl-72' : ''
+            'min-h-screen transition-all duration-300',
+            showingSidebar ? 'lg:pl-72' : 'lg:pl-0'
         ]">
-            <!-- Top Navigation -->
+            <!-- Header - improved responsive design -->
             <header
-                class="sticky top-0 z-40 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-700">
-                <div class="flex h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+                class="sticky top-0 z-40 bg-white/70 dark:bg-gray-900/70 backdrop-blur-2xl border-b border-gray-200/50 dark:border-gray-700/30">
+                <div class="flex h-16 items-center justify-between gap-2 px-3 sm:gap-4 sm:px-6 lg:px-8">
                     <!-- Left Side -->
-                    <div class="flex items-center gap-4">
-                        <!-- Mobile Menu Button -->
+                    <div class="flex items-center gap-2 sm:gap-4">
                         <button @click="toggleSidebar"
                             class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 lg:hidden">
-                            <Bars3Icon v-if="!showingSidebar" class="h-6 w-6" />
-                            <XMarkIcon v-else class="h-6 w-6" />
+                            <Bars3Icon v-if="!showingSidebar" class="h-5 w-5" />
+                            <XMarkIcon v-else class="h-5 w-5" />
                         </button>
 
-                        <!-- Breadcrumb -->
+                        <!-- Breadcrumb - improved responsive visibility -->
                         <nav class="hidden sm:flex items-center gap-2">
                             <Link href="/dashboard"
-                                class="text-sm font-medium text-gray-900 dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400">
+                                class="text-sm font-medium text-gray-900 dark:text-white hover:text-gray-900 dark:hover:text-gray-100">
                             Dashboard
                             </Link>
                             <span v-if="route().current() !== 'dashboard'"
@@ -450,91 +335,69 @@ onUnmounted(() => {
                         </nav>
                     </div>
 
-                    <!-- Right Side -->
-                    <div class="flex items-center gap-4">
-                        <!-- Search -->
+                    <!-- Right Side - improved spacing and mobile layout -->
+                    <div class="flex items-center gap-1.5 sm:gap-3">
+                        <!-- Search - responsive visibility -->
                         <div class="relative hidden md:block">
-                            <div class="relative">
+                            <div class="relative w-48 lg:w-64">
                                 <input v-model="searchQuery" type="text" placeholder="Search..." @input="handleSearch"
-                                    class="w-64 pl-10 pr-4 py-2 text-sm bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 dark:text-gray-300 dark:placeholder-gray-400 transition-colors">
+                                    class="w-full pl-9 pr-4 py-2.5 text-sm bg-gray-50/50 dark:bg-gray-800/50 
+                                           border border-gray-200/50 dark:border-gray-700/30 rounded-xl 
+                                           focus:outline-none focus:ring-2 focus:ring-blue-500/20 
+                                           dark:text-gray-300 dark:placeholder-gray-500 transition-all">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <MagnifyingGlassIcon class="h-5 w-5"
-                                        :class="isSearching ? 'text-emerald-500' : 'text-gray-400 dark:text-gray-500'" />
-                                </div>
-                            </div>
-
-                            <!-- Search Results Dropdown -->
-                            <div v-if="searchQuery.length > 2 && searchResults.length > 0"
-                                class="absolute mt-2 w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2">
-                                <!-- Add your search results here -->
-                            </div>
-                        </div>
-
-                        <!-- Theme Switcher -->
-                        <ThemeSwitcher />
-
-                        <!-- Notifications -->
-                        <div class="relative">
-                            <button type="button" @click="showingNotifications = !showingNotifications"
-                                class="notifications-button relative inline-flex h-9 w-9 items-center justify-center rounded-lg bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors">
-                                <BellIcon class="h-5 w-5 text-gray-600 dark:text-gray-400" />
-                                <span class="absolute top-2 right-2 h-2 w-2 rounded-full bg-emerald-500"></span>
-                            </button>
-
-                            <!-- Notifications Dropdown -->
-                            <div v-if="showingNotifications"
-                                class="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
-                                <div class="p-4 border-b border-gray-200 dark:border-gray-700">
-                                    <div class="flex items-center justify-between">
-                                        <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Notifications
-                                        </h3>
-                                        <button @click="markAllNotificationsAsRead"
-                                            class="text-xs text-emerald-600 hover:text-emerald-500 dark:text-emerald-400 dark:hover:text-emerald-300">
-                                            Mark all as read
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="max-h-96 overflow-y-auto">
-                                    <!-- Add your notifications list here -->
-                                    <div class="p-4 text-sm text-gray-500 dark:text-gray-400 text-center">
-                                        No new notifications
-                                    </div>
+                                        :class="isSearching ? 'text-gray-500' : 'text-gray-400 dark:text-gray-500'" />
                                 </div>
                             </div>
                         </div>
 
-                        <!-- User Menu -->
-                        <div class="relative">
-                            <button @click="showingUserMenu = !showingUserMenu"
-                                class="user-menu-button flex items-center gap-2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                                <img :src="`https://ui-avatars.com/api/?name=${user.name}&background=10B981&color=fff`"
-                                    :alt="user.name" class="h-8 w-8 rounded-full">
-                                <span class="hidden sm:block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    {{ user.name }}
-                                </span>
-                                <ChevronDownIcon
-                                    class="h-5 w-5 text-gray-400 dark:text-gray-500 transition-transform duration-200"
-                                    :class="{ 'rotate-180': showingUserMenu }" />
-                            </button>
+                        <!-- Action buttons - improved mobile spacing -->
+                        <div class="flex items-center gap-1.5 sm:gap-2">
+                            <ThemeSwitcher />
 
-                            <!-- User Dropdown -->
-                            <div v-show="showingUserMenu"
-                                class="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
-                                <div class="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                                    <p class="text-sm font-medium text-gray-900 dark:text-white">{{ user.name }}</p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ user.email }}</p>
-                                </div>
-                                <div class="py-1">
-                                    <Link :href="route('profile.edit')" @click="handleProfileClick"
-                                        class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                    <UserIcon class="h-4 w-4 text-gray-400" />
+                            <!-- Notifications -->
+                            <div class="relative">
+                                <button type="button" @click="showingNotifications = !showingNotifications" class="notifications-button relative inline-flex h-9 w-9 sm:h-10 sm:w-10 
+                                           items-center justify-center rounded-xl bg-gray-50/50">
+                                    <BellIcon
+                                        class="h-5 w-5 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors" />
+                                    <span class="absolute top-2 right-2 h-2 w-2 rounded-full bg-gray-500"></span>
+                                </button>
+                            </div>
+
+                            <!-- User Menu - improved mobile design -->
+                            <div class="relative">
+                                <button @click="showingUserMenu = !showingUserMenu" class="user-menu-button flex items-center gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl 
+                                           bg-gray-50/50 dark:bg-gray-800/50">
+                                    <img :src="`https://ui-avatars.com/api/?name=${user.name}&background=000000&color=fff`"
+                                        :alt="user.name" class="h-7 w-7 rounded-full">
+                                    <span class="hidden sm:block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        {{ user.name }}
+                                    </span>
+                                    <ChevronDownIcon class="h-5 w-5 text-gray-400 hidden sm:block"
+                                        :class="{ 'rotate-180': showingUserMenu }" />
+                                </button>
+
+                                <!-- Profile dropdown -->
+                                <div v-show="showingUserMenu"
+                                    class="absolute right-0 mt-2 w-48 origin-top-right rounded-xl bg-white dark:bg-gray-800 py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                    <Link :href="route('profile.edit')"
+                                        class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        @click="handleProfileClick">
+                                    <UserIcon class="h-5 w-5" />
                                     Profile
                                     </Link>
-                                    <Link :href="route('logout')" method="post" as="button" @click="handleLogout"
-                                        class="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/50">
-                                    <ArrowRightOnRectangleIcon class="h-4 w-4" />
-                                    Log Out
+                                    <Link :href="route('settings.index')"
+                                        class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                    <Cog6ToothIcon class="h-5 w-5" />
+                                    Settings
                                     </Link>
+                                    <button @click="handleLogout"
+                                        class="flex w-full items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                        <ArrowRightOnRectangleIcon class="h-5 w-5" />
+                                        Sign out
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -542,13 +405,16 @@ onUnmounted(() => {
                 </div>
             </header>
 
-            <!-- Page Content -->
-            <main class="p-4 sm:p-6">
+            <!-- Main content area - improved responsive padding -->
+            <main class="p-4 sm:p-6 lg:p-5 max-w-7xl mx-auto">
                 <slot name="header">
-                    <div class="flex justify-between items-center">
+                    <div class="flex justify-between items-center mb-6">
                         <div>
-                            <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ header }}</h1>
-                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-50">{{ description }}</p>
+                            <h1
+                                class="text-2xl font-bold bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-300 dark:to-gray-500 bg-clip-text text-transparent">
+                                {{ header }}
+                            </h1>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ description }}</p>
                         </div>
                     </div>
                 </slot>
